@@ -1,194 +1,238 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Статистика тестов - {{ project.name }}</title>
     <style>
+        /* Основные стили */
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            min-height: 100vh;
         }
+    
+        /* Навигация */
         nav {
-            width: 200px;
-            background: #f0f0f0;
-            padding: 10px;
-            height: 100vh;
+            width: 250px;
+            background-color: #1e293b;
+            color: #fff;
+            padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
         }
+    
+        nav h3 {
+            color: #01a938;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+    
         nav ul {
             list-style: none;
-            padding-left: 0;
+            padding: 0;
         }
+    
         nav li {
             margin-bottom: 10px;
         }
+    
         nav a {
             text-decoration: none;
-            color: #333;
+            color: #cbd5e1;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
         }
+    
+        nav a:hover,
         nav a.active {
-            font-weight: bold;
-            color: #007bff;
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #fff;
         }
+    
+        nav a.active {
+            font-weight: 600;
+        }
+    
+        /* Основной контент */
         main {
             flex-grow: 1;
-            padding: 20px;
+            padding: 30px;
             overflow-y: auto;
-            max-height: 100vh;
         }
+    
         .header-container {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
+            align-items: center;
+            margin-bottom: 30px;
         }
+    
         h1 {
+            font-size: 2em;
+            color: #2d3748;
             margin: 0;
-            font-size: 24px;
-            white-space: nowrap;
         }
-        /* Стили для выпадающего меню */
+    
+        /* Стили для выпадающего меню сортировки */
         .sort-dropdown {
             position: relative;
             display: inline-block;
         }
+    
         .sort-button {
-            background-color: #007bff;
+            background-color: #01a938;
             color: white;
             border: none;
-            padding: 8px 14px;
-            font-size: 14px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px;
             cursor: pointer;
-            user-select: none;
+            transition: background-color 0.3s ease;
         }
+    
+        .sort-button:hover,
         .sort-button:focus {
-            outline: 2px solid #0056b3;
+            background-color: #01822b;
+            outline: none;
         }
+    
         .sort-menu {
             display: none;
             position: absolute;
             right: 0;
-            background-color: white;
+            background-color: #fff;
             min-width: 240px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
             z-index: 1000;
-            margin-top: 6px;
+            margin-top: 10px;
+            overflow: hidden;
         }
+    
         .sort-menu.show {
             display: block;
         }
+    
         .sort-menu button {
             width: 100%;
-            padding: 8px 12px;
+            padding: 12px 20px;
             border: none;
             background: none;
             text-align: left;
             cursor: pointer;
-            font-size: 14px;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            user-select: none;
+            font-size: 16px;
+            color: #4a5568;
+            transition: background-color 0.2s ease;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .sort-menu button:last-child {
-            border-bottom: none;
-        }
+    
         .sort-menu button:hover,
         .sort-menu button:focus {
-            background-color: #f0f8ff;
+            background-color: #edf2f7;
             outline: none;
         }
+    
         .sort-arrow {
-            font-size: 12px;
-            margin-left: 8px;
-            color: #555;
-        }
-        /* Краткая информация — адаптивные колонки с переносом и скроллом */
-        .test-run-summary {
-            display: grid;
-            grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(150px, 1fr);
-            column-gap: 20px;
-            font-size: 16px;
-            font-weight: 600;
-            overflow-x: auto;
-        }
-        .test-run-summary > div {
-            white-space: normal;
-            word-break: break-word;
-        }
-        .test-run-block {
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            background: #fafafa;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: background-color 0.2s ease;
-        }
-        .test-run-block:hover {
-            background: #f0f8ff;
-        }
-        .test-run-details {
-            margin-top: 10px;
-            display: none;
             font-size: 14px;
-            color: #333;
-            line-height: 1.4;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-
-            grid-template-columns: max-content 1fr;
-            column-gap: 15px;
-            row-gap: 6px;
+            margin-left: 10px;
+            color: #718096;
         }
-        .test-run-block.expanded .test-run-details {
+    
+        /* Блоки с информацией о тестах */
+        .test-run-block {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+    
+        .test-run-block:hover {
+            transform: translateY(-3px);
+        }
+    
+        .test-run-summary {
+            padding: 20px;
             display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #4a5568;
+            border-bottom: 1px solid #edf2f7;
         }
-        .label {
-            font-weight: 700;
-            color: #555;
+    
+        .test-run-summary>div {
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+    
+        .test-run-details {
+            padding: 20px;
+            font-size: 14px;
+            color: #718096;
+            line-height: 1.6;
+            display: none; /* Скрываем детали по умолчанию */
+            grid-template-columns: max-content 1fr;
+            gap: 10px 20px;
+        }
+    
+        .test-run-block.expanded .test-run-details {
+            display: grid; /* Отображаем детали при наличии класса "expanded" */
+        }
+    
+        .label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-right: 5px;
+        }
+    
         .value {
             word-break: break-word;
         }
-        /* Кнопка Allure отчёты в первом столбце */
-        .label .allure-button {
-            font-weight: normal;
-            color: #28a745;
-            padding: 6px 14px;
-            background-color: #e6f4ea;
-            border-radius: 4px;
-            text-decoration: none;
+    
+        /* Кнопка Allure отчёты */
+        .allure-button {
             display: inline-block;
-            transition: background-color 0.2s ease;
+            padding: 10px 20px;
+            background-color: #01a938;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
         }
-        .label .allure-button:hover,
-        .label .allure-button:focus {
-            background-color: #c3e6cb;
+    
+        .allure-button:hover,
+        .allure-button:focus {
+            background-color: #01822b;
             outline: none;
         }
     </style>
+    
 </head>
+
 <body>
     <nav>
         <h3>Проекты</h3>
         <ul>
             {% for p in projects %}
-                <li>
-                    <a href="{% url 'project-test-runs' p.id %}" class="{% if p.id == project.id %}active{% endif %}">{{ p.name }}</a>
-                </li>
+            <li>
+                <a href="{% url 'project-test-runs' p.id %}" {% if p.id == project.id %} class="active"{% endif %}>{{ p.name }}</a>
+            </li>
             {% empty %}
-                <li>Проекты не найдены</li>
+            <li>Проекты не найдены</li>
             {% endfor %}
         </ul>
     </nav>
@@ -231,53 +275,54 @@
                 </div>
             </div>
         </div>
-
         {% if test_runs %}
-            {% for run in test_runs %}
-            <div class="test-run-block" tabindex="0" role="button" aria-expanded="false" aria-controls="details-{{ run.id }}" id="block-{{ run.id }}"
-                data-product_version="{{ run.product_version }}"
-                data-duration_seconds="{{ run.duration_seconds|default:0 }}"
-                data-total_tests="{{ run.total_tests }}"
-                data-success_rate="{{ run.success_rate|floatformat:4 }}"
-                data-success_rate_excluding_bugs="{{ run.success_rate_excluding_bugs|floatformat:4 }}"
-            >
-                <div class="test-run-summary">
-                    <div>Версия: {{ run.product_version }}</div>
-                    <div>Время: {{ run.duration }}</div>
-                    <div>Всего тестов: {{ run.total_tests }}</div>
-                    <div>Успешных: {{ run.success_rate|floatformat:2 }}%</div>
-                    <div>Успешных (без багов): {{ run.success_rate_excluding_bugs|floatformat:2 }}%</div>
-                </div>
-                <div class="test-run-details" id="details-{{ run.id }}">
-                    <span class="label">Дата и время начала:</span><span class="value">{{ run.start_time|date:"d.m.Y H:i:s" }}</span>
-                    <span class="label">Дата и время конца:</span><span class="value">{{ run.end_time|date:"d.m.Y H:i:s" }}</span>
-                    <span class="label">Общее время проверки:</span><span class="value">{{ run.duration }}</span>
-                    <span class="label">Общее количество тестов:</span><span class="value">{{ run.total_tests }}</span>
-                    <span class="label">Количество успешных тестов:</span><span class="value">{{ run.passed_tests }}</span>
-                    <span class="label">Количество провалившихся тестов:</span><span class="value">{{ run.failed_tests }}</span>
-                    <span class="label">Провалившихся из-за багов:</span><span class="value">{{ run.failed_due_to_bugs }}</span>
-                    <span class="label">Процент успешных (от общего):</span><span class="value">{{ run.success_rate|floatformat:2 }}%</span>
-                    <span class="label">Процент успешных (без багов):</span><span class="value">{{ run.success_rate_excluding_bugs|floatformat:2 }}%</span>
-
-                    <!-- Кнопка Allure отчёты в первом столбце -->
-                    <span class="label">
-                        {% if run.allure_report_url %}
-                            <a href="{{ run.allure_report_url }}" target="_blank" rel="noopener noreferrer" class="allure-button">Allure отчёты</a>
-                        {% else %}
-                            <em>Отчёт недоступен</em>
-                        {% endif %}
-                    </span>
-                    <span class="value"></span>
-                </div>
+        {% for run in test_runs %}
+        <div class="test-run-block" tabindex="0" role="button" aria-expanded="false" aria-controls="details-{{ run.id }}" id="block-{{ run.id }}"
+            data-product_version="{{ run.product_version }}" data-duration_seconds="{{ run.duration_seconds|default:0 }}"
+            data-total_tests="{{ run.total_tests }}" data-success_rate="{{ run.success_rate|floatformat:4 }}"
+            data-success_rate_excluding_bugs="{{ run.success_rate_excluding_bugs|floatformat:4 }}">
+            <div class="test-run-summary">
+                <div>Версия: {{ run.product_version }}</div>
+                <div>Время: {{ run.duration }}</div>
+                <div>Всего тестов: {{ run.total_tests }}</div>
+                <div>Успешных: {{ run.success_rate|floatformat:2 }}%</div>
+                <div>Успешных (без багов): {{ run.success_rate_excluding_bugs|floatformat:2 }}%</div>
             </div>
-            {% endfor %}
+            <div class="test-run-details" id="details-{{ run.id }}">
+                <span class="label">Дата и время начала:</span>
+                <span class="value">{{ run.start_time|date:"d.m.Y H:i:s" }}</span>
+                <span class="label">Дата и время конца:</span>
+                <span class="value">{{ run.end_time|date:"d.m.Y H:i:s" }}</span>
+                <span class="label">Общее время проверки:</span>
+                <span class="value">{{ run.duration }}</span>
+                <span class="label">Общее количество тестов:</span>
+                <span class="value">{{ run.total_tests }}</span>
+                <span class="label">Количество успешных тестов:</span>
+                <span class="value">{{ run.passed_tests }}</span>
+                <span class="label">Количество провалившихся тестов:</span>
+                <span class="value">{{ run.failed_tests }}</span>
+                <span class="label">Провалившихся из-за багов:</span>
+                <span class="value">{{ run.failed_due_to_bugs }}</span>
+                <span class="label">Процент успешных (от общего):</span>
+                <span class="value">{{ run.success_rate|floatformat:2 }}%</span>
+                <span class="label">Процент успешных (без багов):</span>
+                <span class="value">{{ run.success_rate_excluding_bugs|floatformat:2 }}%</span>
+
+                <!-- Кнопка Allure отчёты -->
+                {% if run.allure_report_url %}
+                <a href="{{ run.allure_report_url }}" target="_blank" rel="noopener noreferrer" class="allure-button">Allure отчёты</a>
+                {% else %}
+                <p><em>Отчёт недоступен</em></p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
         {% else %}
-            <p>Запусков тестов не найдено.</p>
+        <p>Запусков тестов не найдено.</p>
         {% endif %}
     </main>
 
     <script>
-        // Функция для сравнения версий вида "3.9.5.1000"
         function compareVersions(a, b) {
             const partsA = a.split('.').map(Number);
             const partsB = b.split('.').map(Number);
@@ -290,64 +335,46 @@
             }
             return 0;
         }
-
         document.addEventListener('DOMContentLoaded', () => {
             const sortToggle = document.getElementById('sortToggle');
             const sortMenu = document.getElementById('sortMenu');
             const blocksContainer = document.querySelector('main');
             const blocks = Array.from(document.querySelectorAll('.test-run-block'));
-
-            // Переключение видимости меню
             sortToggle.addEventListener('click', () => {
                 const expanded = sortToggle.getAttribute('aria-expanded') === 'true';
                 sortToggle.setAttribute('aria-expanded', String(!expanded));
                 sortMenu.classList.toggle('show');
             });
-
-            // Закрыть меню при клике вне
             document.addEventListener('click', (e) => {
                 if (!sortToggle.contains(e.target) && !sortMenu.contains(e.target)) {
                     sortMenu.classList.remove('show');
                     sortToggle.setAttribute('aria-expanded', 'false');
                 }
             });
-
-            // Функция сортировки
             function sortBlocks(key, order) {
                 const sorted = blocks.slice().sort((a, b) => {
                     let valA = a.dataset[key];
                     let valB = b.dataset[key];
-
-                    // Специально для версии
                     if (key === 'product_version') {
                         const cmp = compareVersions(valA, valB);
                         return order === 'asc' ? cmp : -cmp;
                     }
-
-                    // Попытка привести к числу, если возможно
                     const numA = parseFloat(valA);
                     const numB = parseFloat(valB);
                     if (!isNaN(numA) && !isNaN(numB)) {
                         valA = numA;
                         valB = numB;
                     } else {
-                        // Для строк — сравнение без учёта регистра
                         valA = valA.toLowerCase();
                         valB = valB.toLowerCase();
                     }
-
                     if (valA < valB) return order === 'asc' ? -1 : 1;
                     if (valA > valB) return order === 'asc' ? 1 : -1;
                     return 0;
                 });
-
-                // Удаляем все блоки из DOM
                 blocks.forEach(block => blocksContainer.removeChild(block));
-                // Добавляем отсортированные
                 sorted.forEach(block => blocksContainer.appendChild(block));
             }
-
-            // Обработка клика по пунктам меню
             sortMenu.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', () => {
                     const key = button.dataset.sortKey;
@@ -357,12 +384,9 @@
                     sortToggle.setAttribute('aria-expanded', 'false');
                 });
             });
-
-            // Раскрытие/сворачивание блоков по клику и клавише Enter/Space
             blocks.forEach(block => {
-                block.classList.remove('expanded'); // закрываем все по умолчанию
+                block.classList.remove('expanded');
                 block.setAttribute('aria-expanded', 'false');
-
                 block.addEventListener('click', () => {
                     toggleBlock(block);
                 });
@@ -373,12 +397,13 @@
                     }
                 });
             });
-
             function toggleBlock(block) {
                 const expanded = block.classList.toggle('expanded');
                 block.setAttribute('aria-expanded', expanded ? 'true' : 'false');
             }
         });
     </script>
+    
 </body>
+
 </html>
