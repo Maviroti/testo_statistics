@@ -11,5 +11,5 @@ class TestRunSerializer(serializers.ModelSerializer):
         model = TestRun
         fields = [
             'id', 'project', 'product_version', 'start_time', 'end_time',
-            'total_tests', 'passed_tests', 'failed_tests', 'failed_due_to_bugs'
+            'total_tests', 'passed_tests', 'failed_tests', 'failed_due_to_bugs', 'allure_report_url'
         ]

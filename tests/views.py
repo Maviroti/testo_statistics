@@ -31,3 +31,11 @@ def index(request):
     projects = Project.objects.all()
     return render(request, 'tests/index.html', {'projects': projects})
 
+from rest_framework import generics
+from .models import TestRun
+from .serializers import TestRunSerializer
+
+class TestRunListAPIView(generics.ListAPIView):
+    queryset = TestRun.objects.all().order_by('-start_time')  # Сортировка по дате, новые сверху
+    serializer_class = TestRunSerializer
+

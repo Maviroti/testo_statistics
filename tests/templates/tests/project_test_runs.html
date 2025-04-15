@@ -161,6 +161,22 @@
         .value {
             word-break: break-word;
         }
+        /* Кнопка Allure отчёты в первом столбце */
+        .label .allure-button {
+            font-weight: normal;
+            color: #28a745;
+            padding: 6px 14px;
+            background-color: #e6f4ea;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s ease;
+        }
+        .label .allure-button:hover,
+        .label .allure-button:focus {
+            background-color: #c3e6cb;
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -242,6 +258,16 @@
                     <span class="label">Провалившихся из-за багов:</span><span class="value">{{ run.failed_due_to_bugs }}</span>
                     <span class="label">Процент успешных (от общего):</span><span class="value">{{ run.success_rate|floatformat:2 }}%</span>
                     <span class="label">Процент успешных (без багов):</span><span class="value">{{ run.success_rate_excluding_bugs|floatformat:2 }}%</span>
+
+                    <!-- Кнопка Allure отчёты в первом столбце -->
+                    <span class="label">
+                        {% if run.allure_report_url %}
+                            <a href="{{ run.allure_report_url }}" target="_blank" rel="noopener noreferrer" class="allure-button">Allure отчёты</a>
+                        {% else %}
+                            <em>Отчёт недоступен</em>
+                        {% endif %}
+                    </span>
+                    <span class="value"></span>
                 </div>
             </div>
             {% endfor %}

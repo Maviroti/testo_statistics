@@ -15,6 +15,7 @@ class TestRun(models.Model):
     passed_tests = models.PositiveIntegerField()
     failed_tests = models.PositiveIntegerField()
     failed_due_to_bugs = models.PositiveIntegerField()
+    allure_report_url = models.URLField(blank=True, null=True)
 
     @property
     def duration(self):
