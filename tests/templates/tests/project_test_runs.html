@@ -38,6 +38,92 @@
             overflow-y: auto;
             max-height: 100vh;
         }
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            white-space: nowrap;
+        }
+        /* Стили для выпадающего меню */
+        .sort-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .sort-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .sort-button:focus {
+            outline: 2px solid #0056b3;
+        }
+        .sort-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 240px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            z-index: 1000;
+            margin-top: 6px;
+        }
+        .sort-menu.show {
+            display: block;
+        }
+        .sort-menu button {
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sort-menu button:last-child {
+            border-bottom: none;
+        }
+        .sort-menu button:hover,
+        .sort-menu button:focus {
+            background-color: #f0f8ff;
+            outline: none;
+        }
+        .sort-arrow {
+            font-size: 12px;
+            margin-left: 8px;
+            color: #555;
+        }
+        /* Краткая информация — адаптивные колонки с переносом и скроллом */
+        .test-run-summary {
+            display: grid;
+            grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(150px, 1fr);
+            column-gap: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            overflow-x: auto;
+        }
+        .test-run-summary > div {
+            white-space: normal;
+            word-break: break-word;
+        }
         .test-run-block {
             border: 1px solid #ccc;
             border-radius: 6px;
@@ -51,21 +137,9 @@
         .test-run-block:hover {
             background: #f0f8ff;
         }
-        .test-run-summary {
-            display: grid;
-            grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(150px, 1fr);
-            column-gap: 20px;
-            font-size: 16px;
-            font-weight: 600;
-            overflow-x: auto;
-        }
-        .test-run-summary > div {
-            white-space: normal;
-            word-break: break-word;
-        }
         .test-run-details {
             margin-top: 10px;
-            display: none; /* скрываем по умолчанию */
+            display: none;
             font-size: 14px;
             color: #333;
             line-height: 1.4;
@@ -76,9 +150,8 @@
             column-gap: 15px;
             row-gap: 6px;
         }
-
         .test-run-block.expanded .test-run-details {
-            display: grid; /* показываем и применяем grid */
+            display: grid;
         }
         .label {
             font-weight: 700;
@@ -104,11 +177,54 @@
         </ul>
     </nav>
     <main>
-        <h1>Статистика тестов для проекта: {{ project.name }}</h1>
+        <div class="header-container">
+            <h1>Статистика тестов для проекта: {{ project.name }}</h1>
+            <div class="sort-dropdown">
+                <button class="sort-button" aria-haspopup="true" aria-expanded="false" id="sortToggle">Сортировать ▼</button>
+                <div class="sort-menu" role="menu" aria-labelledby="sortToggle" id="sortMenu">
+                    <button role="menuitem" data-sort-key="product_version" data-sort-order="asc">
+                        Версия <span class="sort-arrow">▲</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="product_version" data-sort-order="desc">
+                        Версия <span class="sort-arrow">▼</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="duration_seconds" data-sort-order="asc">
+                        Время <span class="sort-arrow">▲</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="duration_seconds" data-sort-order="desc">
+                        Время <span class="sort-arrow">▼</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="total_tests" data-sort-order="asc">
+                        Всего тестов <span class="sort-arrow">▲</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="total_tests" data-sort-order="desc">
+                        Всего тестов <span class="sort-arrow">▼</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="success_rate" data-sort-order="asc">
+                        % успешных <span class="sort-arrow">▲</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="success_rate" data-sort-order="desc">
+                        % успешных <span class="sort-arrow">▼</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="success_rate_excluding_bugs" data-sort-order="asc">
+                        % успешных (без багов) <span class="sort-arrow">▲</span>
+                    </button>
+                    <button role="menuitem" data-sort-key="success_rate_excluding_bugs" data-sort-order="desc">
+                        % успешных (без багов) <span class="sort-arrow">▼</span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         {% if test_runs %}
             {% for run in test_runs %}
-            <div class="test-run-block" tabindex="0" role="button" aria-expanded="false" aria-controls="details-{{ run.id }}" id="block-{{ run.id }}">
+            <div class="test-run-block" tabindex="0" role="button" aria-expanded="false" aria-controls="details-{{ run.id }}" id="block-{{ run.id }}"
+                data-product_version="{{ run.product_version }}"
+                data-duration_seconds="{{ run.duration_seconds|default:0 }}"
+                data-total_tests="{{ run.total_tests }}"
+                data-success_rate="{{ run.success_rate|floatformat:4 }}"
+                data-success_rate_excluding_bugs="{{ run.success_rate_excluding_bugs|floatformat:4 }}"
+            >
                 <div class="test-run-summary">
                     <div>Версия: {{ run.product_version }}</div>
                     <div>Время: {{ run.duration }}</div>
@@ -135,10 +251,92 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const blocks = document.querySelectorAll('.test-run-block');
+        // Функция для сравнения версий вида "3.9.5.1000"
+        function compareVersions(a, b) {
+            const partsA = a.split('.').map(Number);
+            const partsB = b.split('.').map(Number);
+            const len = Math.max(partsA.length, partsB.length);
+            for (let i = 0; i < len; i++) {
+                const valA = partsA[i] || 0;
+                const valB = partsB[i] || 0;
+                if (valA < valB) return -1;
+                if (valA > valB) return 1;
+            }
+            return 0;
+        }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            const sortToggle = document.getElementById('sortToggle');
+            const sortMenu = document.getElementById('sortMenu');
+            const blocksContainer = document.querySelector('main');
+            const blocks = Array.from(document.querySelectorAll('.test-run-block'));
+
+            // Переключение видимости меню
+            sortToggle.addEventListener('click', () => {
+                const expanded = sortToggle.getAttribute('aria-expanded') === 'true';
+                sortToggle.setAttribute('aria-expanded', String(!expanded));
+                sortMenu.classList.toggle('show');
+            });
+
+            // Закрыть меню при клике вне
+            document.addEventListener('click', (e) => {
+                if (!sortToggle.contains(e.target) && !sortMenu.contains(e.target)) {
+                    sortMenu.classList.remove('show');
+                    sortToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Функция сортировки
+            function sortBlocks(key, order) {
+                const sorted = blocks.slice().sort((a, b) => {
+                    let valA = a.dataset[key];
+                    let valB = b.dataset[key];
+
+                    // Специально для версии
+                    if (key === 'product_version') {
+                        const cmp = compareVersions(valA, valB);
+                        return order === 'asc' ? cmp : -cmp;
+                    }
+
+                    // Попытка привести к числу, если возможно
+                    const numA = parseFloat(valA);
+                    const numB = parseFloat(valB);
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        valA = numA;
+                        valB = numB;
+                    } else {
+                        // Для строк — сравнение без учёта регистра
+                        valA = valA.toLowerCase();
+                        valB = valB.toLowerCase();
+                    }
+
+                    if (valA < valB) return order === 'asc' ? -1 : 1;
+                    if (valA > valB) return order === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                // Удаляем все блоки из DOM
+                blocks.forEach(block => blocksContainer.removeChild(block));
+                // Добавляем отсортированные
+                sorted.forEach(block => blocksContainer.appendChild(block));
+            }
+
+            // Обработка клика по пунктам меню
+            sortMenu.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const key = button.dataset.sortKey;
+                    const order = button.dataset.sortOrder;
+                    sortBlocks(key, order);
+                    sortMenu.classList.remove('show');
+                    sortToggle.setAttribute('aria-expanded', 'false');
+                });
+            });
+
+            // Раскрытие/сворачивание блоков по клику и клавише Enter/Space
             blocks.forEach(block => {
+                block.classList.remove('expanded'); // закрываем все по умолчанию
+                block.setAttribute('aria-expanded', 'false');
+
                 block.addEventListener('click', () => {
                     toggleBlock(block);
                 });
@@ -152,7 +350,7 @@
 
             function toggleBlock(block) {
                 const expanded = block.classList.toggle('expanded');
-                block.setAttribute('aria-expanded', expanded);
+                block.setAttribute('aria-expanded', expanded ? 'true' : 'false');
             }
         });
     </script>

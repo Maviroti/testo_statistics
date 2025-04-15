@@ -16,7 +16,7 @@ from .models import Project
 
 def project_test_runs(request, project_id):
     project = get_object_or_404(Project, id=project_id)
-    test_runs = project.test_runs.order_by('-start_time')
+    test_runs = TestRun.objects.filter(project=project).order_by('-start_time')
     projects = Project.objects.all()
     return render(request, 'tests/project_test_runs.html', {
         'project': project,
