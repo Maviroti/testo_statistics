@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Статистика тестов - {{ project.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            margin: 0;
+        }
+        nav {
+            width: 200px;
+            background: #f0f0f0;
+            padding: 10px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        nav ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        nav li {
+            margin-bottom: 10px;
+        }
+        nav a {
+            text-decoration: none;
+            color: #333;
+        }
+        nav a.active {
+            font-weight: bold;
+            color: #007bff;
+        }
+        main {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 900px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        th {
+            background: #eee;
+            position: relative;
+        }
+        /* Стили для кнопок сортировки */
+        .sort-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 5px;
+            user-select: none;
+            transition: transform 0.2s ease;
+            vertical-align: middle;
+        }
+        .sort-btn.asc {
+            transform: rotate(180deg); /* стрелка вниз */
+        }
+        .sort-btn:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h3>Проекты</h3>
+        <ul>
+            {% for p in projects %}
+                <li>
+                    <a href="{% url 'project-test-runs' p.id %}" class="{% if p.id == project.id %}active{% endif %}">{{ p.name }}</a>
+                </li>
+            {% empty %}
+                <li>Проекты не найдены</li>
+            {% endfor %}
+        </ul>
+    </nav>
+    <main>
+        <h1>Статистика тестов для проекта: {{ project.name }}</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        Версия продукта
+                        <button class="sort-btn" data-column="0" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        Дата и время начала
+                        <button class="sort-btn" data-column="1" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        Дата и время конца
+                        <button class="sort-btn" data-column="2" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        Общее время проверки
+                        <button class="sort-btn" data-column="3" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        Всего тестов
+                        <button class="sort-btn" data-column="4" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        Успешных тестов
+                        <button class="sort-btn" data-column="5" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        Провалившихся тестов
+                        <button class="sort-btn" data-column="6" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        Провалившихся из-за багов
+                        <button class="sort-btn" data-column="7" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        % успешных (от общего)
+                        <button class="sort-btn" data-column="8" data-order="desc">&#9650;</button>
+                    </th>
+                    <th>
+                        % успешных (без багов)
+                        <button class="sort-btn" data-column="9" data-order="desc">&#9650;</button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in test_runs %}
+                <tr>
+                    <td>{{ run.product_version }}</td>
+                    <td>{{ run.start_time|date:"d.m.Y H:i:s" }}</td>
+                    <td>{{ run.end_time|date:"d.m.Y H:i:s" }}</td>
+                    <td>{{ run.duration }}</td>
+                    <td>{{ run.total_tests }}</td>
+                    <td>{{ run.passed_tests }}</td>
+                    <td>{{ run.failed_tests }}</td>
+                    <td>{{ run.failed_due_to_bugs }}</td>
+                    <td>{{ run.success_rate|floatformat:2 }}%</td>
+                    <td>{{ run.success_rate_excluding_bugs|floatformat:2 }}%</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10">Запусков тестов не найдено</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const table = document.querySelector('table');
+        const tbody = table.querySelector('tbody');
+        const buttons = table.querySelectorAll('.sort-btn');
+
+        // Функция для парсинга значения ячейки в нужный тип
+        function parseCellValue(value, columnIndex) {
+          // Для дат (столбцы 1 и 2)
+          if (columnIndex === 1 || columnIndex === 2) {
+            return new Date(value);
+          }
+          // Для времени (столбец 3) — формат "HH:MM:SS" или "H:MM:SS"
+          if (columnIndex === 3) {
+            const parts = value.split(':');
+            if (parts.length === 3) {
+              return (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+            }
+            return 0;
+          }
+          // Для процентов (столбцы 8 и 9) — убираем % и парсим float
+          if (columnIndex === 8 || columnIndex === 9) {
+            return parseFloat(value.replace('%', '')) || 0;
+          }
+          // Для чисел (столбцы 4-7)
+          if ([4,5,6,7].includes(columnIndex)) {
+            return parseInt(value) || 0;
+          }
+          // Для остальных — строка в нижнем регистре
+          return value.toString().toLowerCase();
+        }
+
+        function sortTable(columnIndex, order) {
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+
+          rows.sort((a, b) => {
+            const aText = a.children[columnIndex].textContent.trim();
+            const bText = b.children[columnIndex].textContent.trim();
+
+            const aValue = parseCellValue(aText, columnIndex);
+            const bValue = parseCellValue(bText, columnIndex);
+
+            if (aValue < bValue) return order === 'asc' ? -1 : 1;
+            if (aValue > bValue) return order === 'asc' ? 1 : -1;
+            return 0;
+          });
+
+          // Удаляем старые строки
+          while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+          }
+
+          // Добавляем отсортированные
+          rows.forEach(row => tbody.appendChild(row));
+        }
+
+        buttons.forEach(button => {
+          button.addEventListener('click', () => {
+            const column = parseInt(button.dataset.column);
+            let order = button.dataset.order;
+
+            // Переключаем порядок сортировки
+            order = order === 'asc' ? 'desc' : 'asc';
+            button.dataset.order = order;
+
+            // Обновляем стрелки: убираем класс у всех кнопок
+            buttons.forEach(btn => btn.classList.remove('asc'));
+            if (order === 'asc') {
+              button.classList.add('asc');
+            }
+
+            sortTable(column, order);
+          });
+        });
+      });
+    </script>
+</body>
+</html>
