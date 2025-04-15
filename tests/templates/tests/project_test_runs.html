@@ -15,6 +15,7 @@
             padding: 10px;
             height: 100vh;
             box-sizing: border-box;
+            overflow-y: auto;
         }
         nav ul {
             list-style: none;
@@ -34,39 +35,58 @@
         main {
             flex-grow: 1;
             padding: 20px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+        .test-run-block {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            background: #fafafa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: background-color 0.2s ease;
+        }
+        .test-run-block:hover {
+            background: #f0f8ff;
+        }
+        .test-run-summary {
+            display: grid;
+            grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(150px, 1fr);
+            column-gap: 20px;
+            font-size: 16px;
+            font-weight: 600;
             overflow-x: auto;
         }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            min-width: 900px;
+        .test-run-summary > div {
+            white-space: normal;
+            word-break: break-word;
         }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px 12px;
-            text-align: center;
+        .test-run-details {
+            margin-top: 10px;
+            display: none; /* скрываем по умолчанию */
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+
+            grid-template-columns: max-content 1fr;
+            column-gap: 15px;
+            row-gap: 6px;
+        }
+
+        .test-run-block.expanded .test-run-details {
+            display: grid; /* показываем и применяем grid */
+        }
+        .label {
+            font-weight: 700;
+            color: #555;
             white-space: nowrap;
         }
-        th {
-            background: #eee;
-            position: relative;
-        }
-        /* Стили для кнопок сортировки */
-        .sort-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            margin-left: 5px;
-            user-select: none;
-            transition: transform 0.2s ease;
-            vertical-align: middle;
-        }
-        .sort-btn.asc {
-            transform: rotate(180deg); /* стрелка вниз */
-        }
-        .sort-btn:focus {
-            outline: none;
+        .value {
+            word-break: break-word;
         }
     </style>
 </head>
@@ -85,147 +105,56 @@
     </nav>
     <main>
         <h1>Статистика тестов для проекта: {{ project.name }}</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                        Версия продукта
-                        <button class="sort-btn" data-column="0" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        Дата и время начала
-                        <button class="sort-btn" data-column="1" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        Дата и время конца
-                        <button class="sort-btn" data-column="2" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        Общее время проверки
-                        <button class="sort-btn" data-column="3" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        Всего тестов
-                        <button class="sort-btn" data-column="4" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        Успешных тестов
-                        <button class="sort-btn" data-column="5" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        Провалившихся тестов
-                        <button class="sort-btn" data-column="6" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        Провалившихся из-за багов
-                        <button class="sort-btn" data-column="7" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        % успешных (от общего)
-                        <button class="sort-btn" data-column="8" data-order="desc">&#9650;</button>
-                    </th>
-                    <th>
-                        % успешных (без багов)
-                        <button class="sort-btn" data-column="9" data-order="desc">&#9650;</button>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for run in test_runs %}
-                <tr>
-                    <td>{{ run.product_version }}</td>
-                    <td>{{ run.start_time|date:"d.m.Y H:i:s" }}</td>
-                    <td>{{ run.end_time|date:"d.m.Y H:i:s" }}</td>
-                    <td>{{ run.duration }}</td>
-                    <td>{{ run.total_tests }}</td>
-                    <td>{{ run.passed_tests }}</td>
-                    <td>{{ run.failed_tests }}</td>
-                    <td>{{ run.failed_due_to_bugs }}</td>
-                    <td>{{ run.success_rate|floatformat:2 }}%</td>
-                    <td>{{ run.success_rate_excluding_bugs|floatformat:2 }}%</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="10">Запусков тестов не найдено</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+        {% if test_runs %}
+            {% for run in test_runs %}
+            <div class="test-run-block" tabindex="0" role="button" aria-expanded="false" aria-controls="details-{{ run.id }}" id="block-{{ run.id }}">
+                <div class="test-run-summary">
+                    <div>Версия: {{ run.product_version }}</div>
+                    <div>Время: {{ run.duration }}</div>
+                    <div>Всего тестов: {{ run.total_tests }}</div>
+                    <div>Успешных: {{ run.success_rate|floatformat:2 }}%</div>
+                    <div>Успешных (без багов): {{ run.success_rate_excluding_bugs|floatformat:2 }}%</div>
+                </div>
+                <div class="test-run-details" id="details-{{ run.id }}">
+                    <span class="label">Дата и время начала:</span><span class="value">{{ run.start_time|date:"d.m.Y H:i:s" }}</span>
+                    <span class="label">Дата и время конца:</span><span class="value">{{ run.end_time|date:"d.m.Y H:i:s" }}</span>
+                    <span class="label">Общее время проверки:</span><span class="value">{{ run.duration }}</span>
+                    <span class="label">Общее количество тестов:</span><span class="value">{{ run.total_tests }}</span>
+                    <span class="label">Количество успешных тестов:</span><span class="value">{{ run.passed_tests }}</span>
+                    <span class="label">Количество провалившихся тестов:</span><span class="value">{{ run.failed_tests }}</span>
+                    <span class="label">Провалившихся из-за багов:</span><span class="value">{{ run.failed_due_to_bugs }}</span>
+                    <span class="label">Процент успешных (от общего):</span><span class="value">{{ run.success_rate|floatformat:2 }}%</span>
+                    <span class="label">Процент успешных (без багов):</span><span class="value">{{ run.success_rate_excluding_bugs|floatformat:2 }}%</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>Запусков тестов не найдено.</p>
+        {% endif %}
     </main>
 
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const table = document.querySelector('table');
-        const tbody = table.querySelector('tbody');
-        const buttons = table.querySelectorAll('.sort-btn');
+        document.addEventListener('DOMContentLoaded', () => {
+            const blocks = document.querySelectorAll('.test-run-block');
 
-        // Функция для парсинга значения ячейки в нужный тип
-        function parseCellValue(value, columnIndex) {
-          // Для дат (столбцы 1 и 2)
-          if (columnIndex === 1 || columnIndex === 2) {
-            return new Date(value);
-          }
-          // Для времени (столбец 3) — формат "HH:MM:SS" или "H:MM:SS"
-          if (columnIndex === 3) {
-            const parts = value.split(':');
-            if (parts.length === 3) {
-              return (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+            blocks.forEach(block => {
+                block.addEventListener('click', () => {
+                    toggleBlock(block);
+                });
+                block.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleBlock(block);
+                    }
+                });
+            });
+
+            function toggleBlock(block) {
+                const expanded = block.classList.toggle('expanded');
+                block.setAttribute('aria-expanded', expanded);
             }
-            return 0;
-          }
-          // Для процентов (столбцы 8 и 9) — убираем % и парсим float
-          if (columnIndex === 8 || columnIndex === 9) {
-            return parseFloat(value.replace('%', '')) || 0;
-          }
-          // Для чисел (столбцы 4-7)
-          if ([4,5,6,7].includes(columnIndex)) {
-            return parseInt(value) || 0;
-          }
-          // Для остальных — строка в нижнем регистре
-          return value.toString().toLowerCase();
-        }
-
-        function sortTable(columnIndex, order) {
-          const rows = Array.from(tbody.querySelectorAll('tr'));
-
-          rows.sort((a, b) => {
-            const aText = a.children[columnIndex].textContent.trim();
-            const bText = b.children[columnIndex].textContent.trim();
-
-            const aValue = parseCellValue(aText, columnIndex);
-            const bValue = parseCellValue(bText, columnIndex);
-
-            if (aValue < bValue) return order === 'asc' ? -1 : 1;
-            if (aValue > bValue) return order === 'asc' ? 1 : -1;
-            return 0;
-          });
-
-          // Удаляем старые строки
-          while (tbody.firstChild) {
-            tbody.removeChild(tbody.firstChild);
-          }
-
-          // Добавляем отсортированные
-          rows.forEach(row => tbody.appendChild(row));
-        }
-
-        buttons.forEach(button => {
-          button.addEventListener('click', () => {
-            const column = parseInt(button.dataset.column);
-            let order = button.dataset.order;
-
-            // Переключаем порядок сортировки
-            order = order === 'asc' ? 'desc' : 'asc';
-            button.dataset.order = order;
-
-            // Обновляем стрелки: убираем класс у всех кнопок
-            buttons.forEach(btn => btn.classList.remove('asc'));
-            if (order === 'asc') {
-              button.classList.add('asc');
-            }
-
-            sortTable(column, order);
-          });
         });
-      });
     </script>
 </body>
 </html>
